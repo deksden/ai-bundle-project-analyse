@@ -1,0 +1,60 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "metrics": {
+    "coverage_percentages": {
+      "files_with_entities": 0.3333,
+      "files_with_remarks": 0.3333,
+      "entities_with_relationships": 1
+    },
+    "entity_type_counts": {
+      "database": 1,
+      "service": 2
+    },
+    "external_systems": [
+      {
+        "relationshipId": "rel-api-db",
+        "source": "API Service",
+        "target": "Research DB",
+        "type": "uses-database",
+        "metadata": {
+          "category": "external_system",
+          "endpoint": "postgresql://research-db"
+        }
+      }
+    ],
+    "layer_count": 1,
+    "message_queues": [
+      {
+        "relationshipId": "rel-worker-api",
+        "name": "jobs.queue",
+        "source": "Worker",
+        "target": "API Service"
+      },
+      {
+        "entityId": "entity-worker",
+        "entity": "Worker",
+        "queue": "jobs.queue"
+      }
+    ],
+    "relationship_type_counts": {
+      "calls": 1,
+      "uses-database": 1
+    },
+    "service_endpoints": [
+      {
+        "relationshipId": "rel-api-db",
+        "endpoint": "postgresql://research-db",
+        "source": "API Service",
+        "target": "Research DB",
+        "type": "uses-database"
+      },
+      {
+        "entityId": "entity-api",
+        "entity": "API Service",
+        "endpoint": "GET /health",
+        "source": "API Service"
+      }
+    ],
+    "slice_count": 1
+  }
+}

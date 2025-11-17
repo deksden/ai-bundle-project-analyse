@@ -1,0 +1,9 @@
+{"type":"entity","id":"entity-api","name":"API Gateway","entityType":"service","path":"apps/api/src/index.ts","metadata":{"layer":"core","analysis":{"ownership":"platform","description":"Entry point for external traffic"}}}
+{"type":"entity","id":"entity-worker","name":"Events Worker","entityType":"service","path":"apps/worker/src/index.ts","metadata":{"layer":"core","analysis":{"queues":["events.high"]}}}
+{"type":"entity","id":"entity-db","name":"Research Analytics DB","entityType":"database","metadata":{"engine":"postgresql","tier":"analytics"}}
+{"type":"relationship","id":"rel-api-db","relType":"uses-database","sourceId":"entity-api","targetId":"entity-db","metadata":{"external_system":"research-db","endpoint":"postgresql://research-structure","owner":"data-platform"}}
+{"type":"relationship","id":"rel-worker-api","relType":"publishes-events","sourceId":"entity-worker","targetId":"entity-api","metadata":{"queue":"events.high","channel":"internal"}}
+{"type":"layer","id":"layer-core","name":"Core Platform","description":"Services that expose public surface"}
+{"type":"slice","id":"slice-ingest","name":"Event Ingestion","description":"Flow of ingesting external events"}
+{"type":"evidence","entityId":"entity-api","payload":{"source":"docs/ADR-001-current.md","kind":"documentation","summary":"ADR confirms API Gateway responsibilities"}}
+{"type":"evidence","relationshipId":"rel-worker-api","payload":{"source":"configs/queue.yaml","kind":"configuration","summary":"Queue definition for worker -> API"}}

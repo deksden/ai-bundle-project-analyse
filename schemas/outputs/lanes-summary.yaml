@@ -1,0 +1,31 @@
+# lanes-summary — output schema (пример)
+status: success
+totals:
+  expected_code: 4
+  processed_code: 4
+  expected_docs: 3
+  processed_docs: 3
+  processed_files: 7
+  branch_errors: 0
+lane_statuses:
+  code: completed
+  docs: completed
+lane_outputs:
+  code: success
+  docs: success
+lanes:
+  code:
+    lane_id: code
+    status: completed
+    output_status: success
+    metrics:
+      total_files: 4
+      branch_errors: 0
+  docs:
+    lane_id: docs
+    status: completed
+    output_status: success
+    metrics:
+      total_files: 3
+      branch_errors: 0
+deviations: []

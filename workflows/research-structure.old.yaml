@@ -1,0 +1,426 @@
+name: Research Structure Pipeline
+id: research-structure
+version: 1.2.0
+author: ai-kod
+description: >
+  Запускает полный бандл research-structure, используя артефакты, смонтированные
+  в `TASK-XXX/global`. Подготавливает рабочее окружение, запускает скрипты из
+  бандла, проверяет результаты и формирует отчёт.
+tags:
+  - research
+  - structure
+  - analysis
+metadata:
+  description: Запуск research-structure bundle через CLI с проверкой артефактов
+start: start
+inputs:
+  required:
+    - name: project_root
+      type: string
+      description: Абсолютный путь к анализируемому репозиторию.
+    - name: task_id
+      type: string
+      description: Системный идентификатор задачи (используется во всех шагах).
+    - name: ingest_path
+      type: string
+      description: Путь к JSONL с сущностями/отношениями (может быть относительным от project_root).
+      default: ""
+    - name: remarks
+      type: array
+      description: Массив REMARK объектов (path/scope/recursive/text). Может быть пустым.
+      default: []
+    - name: git_sha
+      type: string
+      description: Git SHA, связанный с прогоном (опционально).
+      default: ""
+    - name: db_path
+      type: string
+      description: Базовое значение для SQLite (используется как подсказка, фактический путь определяется в global/shared).
+      default: shared/research-structure/analysis.db
+    - name: outputs_dir
+      type: string
+      description: Имя каталога для экспортов (используется как подсказка, фактический путь формируется внутри task/global).
+      default: analysis
+
+stages:
+  - id: start
+    name: Prepare research-structure workspace
+    prompt_type: inline
+    context_from:
+      - bundle.scripts
+      - bundle.workflows
+      - bundle.fixtures
+      - bundle.demo-scripts
+      - bundle.demo-apps
+      - bundle.demo-docs
+      - bundle.config
+      - bundle.docs
+    prompt:
+      task: |
+        Подготовь рабочее окружение для запуска bundle из `global/` и зафиксируй все необходимые пути.
+
+        1. Определи базовые пути:
+           - `workspace_root="$(pwd)"`
+           - `task_global_root="$(realpath global)"`
+           - Заверши шаг со статусом `failed`, если `task_global_root` не существует или не является директорией.
+        2. Уточни расположение бандла:
+           - `bundle_root="$task_global_root/bundle/research-structure"`
+           - Проверь наличие ключевых каталогов:
+             - `scripts_dir="$bundle_root/scripts"`
+             - `workflows_dir="$bundle_root/workflows"`
+             - `fixtures_dir="$bundle_root/tests/fixtures"`
+             - `docs_dir="$bundle_root/docs"`
+             - `demo_root="$bundle_root/examples/research-structure-demo"`
+             - `config_dir="$demo_root/configs"`
+             - `apps_dir="$demo_root/apps"`
+             - `services_dir="$demo_root/services"`
+             - `terraform_dir="$demo_root/infrastructure/terraform"`
+           - Если какой-либо каталог отсутствует — зафиксируй отклонение и завершай шаг со статусом `failed`.
+        3. Подготовь рабочие каталоги:
+           - `global_root="$task_global_root"`
+           - `analysis_dir="$global_root/analysis"`
+           - `exports_dir="$analysis_dir/exports"`
+           - `reports_dir="$global_root/reports"`
+           - `logs_dir="$global_root/logs"`
+           - `tmp_dir="$global_root/tmp"`
+           - `structure_dir="$global_root/structure"`
+           - Выполни очистку: `rm -rf "$analysis_dir" "$exports_dir" "$reports_dir" "$logs_dir" "$tmp_dir" "$structure_dir"` и затем `mkdir -p` для этих каталогов.
+        4. Настрой общие ресурсы:
+           - `shared_root="$global_root/shared/research-structure/shared-resources"`
+           - `db_path="$shared_root/analysis.db"`
+           - Создай директорию `shared_root` (без очистки). Если `db_path` отсутствует — симлинк не смонтирован, зафиксируй отклонение и завершай шаг со статусом `failed`.
+        6. Разреши входные пути:
+           - Если `{{inputs.ingest_path}}` непустой, разреши его относительно `project_root`. Скопируй итоговый файл в `"$global_root/ingest.jsonl"`.
+           - Если аргумент пустой, возьми демо-файл `"$demo_root/ingest.jsonl"` и скопируй в глобальный каталог.
+           - `ingest_path="$global_root/ingест.jsonl"`.
+           - `remarks_path="$global_root/remarks.json"`. Если `inputs.remarks` содержит элементы — сериализуй массив в JSON и запиши в файл. Если массив пустой, но `"$demo_root/remarks.json"` существует, скопируй его. Иначе создай файл с `[]`.
+        7. Зафиксируй дополнительную информацию:
+           - `reports_file="$reports_dir/structure.md"`
+           - `snapshot_path="$structure_dir/snapshot.json"`
+           - Сохрани `git_sha="{{inputs.git_sha}}"` (может быть пустой строкой).
+        8. Сформируй `output.yaml` следующего вида:
+        ```yaml
+        status: success
+        project_root: "<project_root>"
+        workspace_root: "<abs path>"
+        task_global_root: "<abs path>"
+        bundle_root: "<abs path>"
+        scripts_dir: "<bundle_root>/scripts"
+        workflows_dir: "<bundle_root>/workflows"
+        fixtures_dir: "<bundle_root>/tests/fixtures"
+        docs_dir: "<bundle_root>/docs"
+        demo_root: "<bundle_root>/examples/research-structure-demo"
+        config_dir: "<bundle_root>/examples/research-structure-demo/configs"
+        apps_dir: "<bundle_root>/examples/research-structure-demo/apps"
+        services_dir: "<bundle_root>/examples/research-structure-demo/services"
+        analysis_dir: "<analysis_dir>"
+        exports_dir: "<exports_dir>"
+        reports_dir: "<reports_dir>"
+        logs_dir: "<logs_dir>"
+        tmp_dir: "<tmp_dir>"
+        global_root: "<global_root>"
+        structure_dir: "<structure_dir>"
+        shared_root: "<shared_root>"
+        db_path: "<db_path>"
+        ingest_path: "<abs ingest path>"
+        remarks_path: "<abs remarks path>"
+        snapshot_path: "<snapshot_path>"
+        git_sha: "{{inputs.git_sha}}"
+        outputs:
+          global:
+            workflow:
+              task_id: "{{inputs.task_id}}"
+              git_sha: "{{inputs.git_sha}}"
+              project_root: "<project_root>"
+              workspace_root: "<abs path>"
+              task_global_root: "<abs path>"
+              global_root: "<global_root>"
+              analysis_dir: "<analysis_dir>"
+              exports_dir: "<exports_dir>"
+              reports_dir: "<reports_dir>"
+              logs_dir: "<logs_dir>"
+              tmp_dir: "<tmp_dir>"
+              structure_dir: "<structure_dir>"
+              db_path: "<db_path>"
+              ingest_path: "<abs ingest path>"
+              remarks_path: "<abs remarks path>"
+              snapshot_path: "<snapshot_path>"
+              shared_root: "<shared_root>"
+            shared:
+              research_structure:
+                root: "<shared_root>"
+                analysis_db: "<db_path>"
+            bundle:
+              research_structure:
+                root: "<bundle_root>"
+                scripts: "<bundle_root>/scripts"
+                workflows: "<bundle_root>/workflows"
+                fixtures: "<bundle_root>/tests/fixtures"
+                docs: "<bundle_root>/docs"
+                demo: "<bundle_root>/examples/research-structure-demo"
+                config: "<bundle_root>/examples/research-structure-demo/configs"
+                apps: "<bundle_root>/examples/research-structure-demo/apps"
+                services: "<bundle_root>/examples/research-structure-demo/services"
+        ```
+        9. Приложи к `output.yaml` список созданных каталогов и файлов (используй `tree` или `find`) в секции `workspace_state`, указав какие каталоги относятся к рабочей копии проекта.
+    contracts:
+      output:
+        type: object
+        required:
+          - project_root
+          - bundle_root
+          - analysis_dir
+          - exports_dir
+          - db_path
+          - ingest_path
+          - remarks_path
+          - logs_dir
+          - reports_dir
+          - tmp_dir
+          - shared_root
+          - global_root
+        properties:
+          project_root: { type: string }
+          bundle_root: { type: string }
+          analysis_dir: { type: string }
+          exports_dir: { type: string }
+          db_path: { type: string }
+          ingest_path: { type: string }
+          remarks_path: { type: string }
+          logs_dir: { type: string }
+          reports_dir: { type: string }
+          tmp_dir: { type: string }
+          shared_root: { type: string }
+          global_root: { type: string }
+    navigation:
+      strategy: linear
+
+  - id: init-db
+    name: Initialize SQLite schema
+    prompt_type: inline
+    context_from:
+      - start
+    prompt:
+      task: |
+        Инициализируй базу данных, используя скрипт из бандла.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Запусти команду:
+           ```bash
+           pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/init-db.ts" \
+             --project_root "{{context.start.project_root}}" \
+             --db_path "{{context.start.db_path}}" \
+             --task_id "{{inputs.global.workflow.task_id}}" \
+             --log_file "{{context.start.logs_dir}}/init-db.log"
+           ```
+           Если `{{inputs.global.workflow.git_sha}}` непустой, добавь `--git_sha "{{inputs.global.workflow.git_sha}}"`.
+        3. Убедись, что логи записаны по пути `{{context.start.logs_dir}}/init-db.log`, и что файл базы `{{context.start.db_path}}` существует.
+        4. Выведи список таблиц (`sqlite3 "{{context.start.db_path}}" ".tables"`), сохрани информацию в `output.yaml` вместе с `exit_code`.
+    navigation:
+      strategy: linear
+
+  - id: index-files
+    name: Index repository files
+    prompt_type: inline
+    context_from:
+      - start
+      - init-db
+    prompt:
+      task: |
+        Используй значения из раздела *Workspace References* (`STEP_WORKSPACE`, `PROJECT_ROOT`, `LOG_DIR`, `DB_PATH`).
+
+        1. Выполни `cd "$PROJECT_ROOT"`.
+        2. Запусти индексирование:
+           ```bash
+           LOG_FILE="$LOG_DIR/index-files.log"
+           pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/index-files.ts" \
+             --project_root "$PROJECT_ROOT" \
+             --db_path "$DB_PATH" \
+             --task_id "{{inputs.global.workflow.task_id}}" \
+             --log_file "$LOG_FILE"
+           ```
+           Если `{{inputs.global.workflow.git_sha}}` непустой, добавь `--git_sha "{{inputs.global.workflow.git_sha}}"`.
+
+        3. После выполнения собери статистику:
+           ```bash
+           FILE_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM file_index WHERE run_id='{{inputs.global.workflow.task_id}}';")
+           RUN_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM runs WHERE id='{{inputs.global.workflow.task_id}}';")
+           ```
+
+        4. Убедись, что `$LOG_FILE` создан и содержит JSON-сводку. Любые ошибки в stdout/stderr зафиксируй в итоговом отчёте.
+
+        5. Сформируй `"$STEP_WORKSPACE/output.yaml"` c абсолютными путями и обязательными полями:
+           - `command` и все аргументы запуска;
+           - `exit_code` (0 при успехе);
+           - `log_file: $LOG_FILE`;
+           - `file_index_count: $FILE_COUNT`, `runs_count: $RUN_COUNT`;
+           - `status: failed` и описание причины при ошибке.
+    navigation:
+      strategy: linear
+
+  - id: prepare-remarks
+    name: Prepare remarks
+    prompt_type: inline
+    context_from:
+      - start
+      - index-files
+    prompt:
+      task: |
+        Подготовь REMARKS и сохрани их в task/global.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Перезапиши файл `{{context.start.remarks_path}}`, сериализовав `inputs.remarks` в JSON (используй `jq -n --argjson` или `python - <<'PY'`).
+           Если массив пустой, оставь файл со значением `[]`.
+        3. Запусти:
+           ```bash
+           pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/prepare-remarks.ts" \
+             --project_root "{{context.start.project_root}}" \
+             --db_path "{{context.start.db_path}}" \
+             --task_id "{{inputs.global.workflow.task_id}}" \
+             --remarks_json "{{context.start.remarks_path}}" \
+             --log_file "{{context.start.logs_dir}}/prepare-remarks.log"
+           ```
+        4. Зафиксируй количество записанных ремарок и применений с помощью SQL-запросов.
+        5. Добавь в `output.yaml` сведения о команде, `exit_code`, логе и статистике.
+    navigation:
+      strategy: linear
+
+  - id: clear-and-write-to-db
+    name: Clear and ingest entities & relationships
+    prompt_type: inline
+    context_from:
+      - start
+      - prepare-remarks
+    prompt:
+      task: |
+        Загрузите сущности и связи, используя ingest JSONL.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Убедись, что `{{context.start.ingest_path}}` существует; при необходимости выведи `ls -l`.
+        3. Выполни:
+           ```bash
+           pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/clear-and-write-to-db.ts" \
+             --db_path "{{context.start.db_path}}" \
+             --task_id "{{inputs.global.workflow.task_id}}" \
+             --ingest_path "{{context.start.ingest_path}}" \
+             --log_file "{{context.start.logs_dir}}/clear-and-write-to-db.log"
+           ```
+        4. Проверь количество загруженных сущностей и связей, сохраните значения в `output.yaml`.
+    navigation:
+      strategy: linear
+
+  - id: compact-db
+    name: Compact & cleanup database
+    prompt_type: inline
+    context_from:
+      - start
+      - clear-and-write-to-db
+    prompt:
+      task: |
+        Выполни обслуживание базы данных.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Запусти:
+           ```bash
+           pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/compact-db.ts" \
+             --db_path "{{context.start.db_path}}" \
+             --task_id "{{inputs.global.workflow.task_id}}" \
+             --log_file "{{context.start.logs_dir}}/compact-db.log"
+           ```
+        3. Зафиксируй размер БД до и после (используй `stat -f "%z"` или `wc -c`), сохрани данные в `output.yaml`.
+    navigation:
+      strategy: linear
+
+  - id: enrich-links
+    name: Enrich coverage and relationships
+    prompt_type: inline
+    context_from:
+      - start
+      - compact-db
+    prompt:
+      task: |
+        Обогащай покрытие и связи.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Запусти:
+           ```bash
+           pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/enrich-links.ts" \
+             --db_path "{{context.start.db_path}}" \
+             --task_id "{{inputs.global.workflow.task_id}}" \
+             --log_file "{{context.start.logs_dir}}/enrich-links.log"
+           ```
+        3. Получи метрики из `coverage_summary` и добавь в `output.yaml`.
+    navigation:
+      strategy: linear
+
+  - id: export-snapshot
+    name: Export JSON artefacts
+    prompt_type: inline
+    context_from:
+      - start
+      - enrich-links
+    prompt:
+      task: |
+        Выполни экспорт JSON-артефактов в task/global.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Выполни:
+          ```bash
+          pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/export-snapshot.ts" \
+            --db_path "{{context.start.db_path}}" \
+            --task_id "{{inputs.global.workflow.task_id}}" \
+            --outputs_dir "{{context.start.exports_dir}}" \
+            --log_file "{{context.start.logs_dir}}/export-snapshot.log"
+          ```
+        3. Убедись, что в `{{context.start.exports_dir}}` появились обязательные файлы (`coverage.json`, `entities.json`, `relationships.json`, `metrics.json`, `endpoints.json`, `queues.json`, `external-systems.json`), и сохрани статусы/метрики в `output.yaml`.
+    navigation:
+      strategy: linear
+
+  - id: generate-report
+    name: Generate Markdown report
+    prompt_type: inline
+    context_from:
+      - start
+      - export-snapshot
+    prompt:
+      task: |
+        Сформируй Markdown-отчёт в каталоге reports внутри task/global.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Выполни:
+          ```bash
+          pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/generate-structure-report.ts" \
+            --db_path "{{context.start.db_path}}" \
+            --task_id "{{inputs.global.workflow.task_id}}" \
+            --outputs_dir "{{context.start.reports_dir}}" \
+            --log_file "{{context.start.logs_dir}}/generate-report.log"
+          ```
+        3. Проверь, что отчёт `{{context.start.reports_dir}}/structure.md` существует, зафиксируй количество строк и наличие ключевых секций.
+    navigation:
+      strategy: linear
+
+  - id: finalize-run
+    name: Finalize bundle run
+    prompt_type: inline
+    context_from:
+      - start
+      - export-snapshot
+      - generate-report
+    prompt:
+      task: |
+        Заверши прогон и проверь согласованность артефактов.
+
+        1. Выполни `cd "{{context.start.project_root}}"`.
+        2. Запусти:
+          ```bash
+          pnpm exec tsx "{{inputs.global.bundle.research_structure.scripts}}/finalize-run.ts" \
+            --db_path "{{context.start.db_path}}" \
+            --task_id "{{inputs.global.workflow.task_id}}" \
+            --outputs_dir "{{context.start.global_root}}" \
+            --log_file "{{context.start.logs_dir}}/finalize-run.log"
+          ```
+        3. Убедись, что сводный файл `{{context.start.snapshot_path}}` создан. Если файл отсутствует — зафиксируй отклонение и установи `status: failed`.
+        4. Сравни ключевые метрики (entities/relationships) между snapshot и экспортами (`entities.json`, `relationships.json`, `coverage.json`) и перечисли расхождения в массиве `deviations`.
+        5. Сформируй `output.yaml`, указав команды, `exit_code`, пути к логам и финальным артефактам (`coverage.json`, `entities.json`, `relationships.json`, отчёт, snapshot).
+    navigation:
+      strategy: linear

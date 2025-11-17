@@ -1,0 +1,52 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "relationships": [
+    {
+      "id": "rel-worker-api",
+      "type": "calls",
+      "sourceId": "entity-worker",
+      "targetId": "entity-api",
+      "metadata": {
+        "queue": "jobs.queue",
+        "analysis": {
+          "taskId": "<<TASK_ID>>",
+          "evidence": 0,
+          "source": {
+            "id": "entity-worker",
+            "name": "Worker",
+            "type": "service"
+          },
+          "target": {
+            "id": "entity-api",
+            "name": "API Service",
+            "type": "service"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel-api-db",
+      "type": "uses-database",
+      "sourceId": "entity-api",
+      "targetId": "entity-db",
+      "metadata": {
+        "category": "external_system",
+        "endpoint": "postgresql://research-db",
+        "analysis": {
+          "taskId": "<<TASK_ID>>",
+          "evidence": 1,
+          "source": {
+            "id": "entity-api",
+            "name": "API Service",
+            "type": "service"
+          },
+          "target": {
+            "id": "entity-db",
+            "name": "Research DB",
+            "type": "database"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# code-process-file — output schema (пример)
+status: success
+lane_id: code
+file:
+  relative_path: apps/api/src/index.ts
+  absolute_path: /abs/path/apps/api/src/index.ts
+  extension: .ts
+metrics:
+  entities_total: 5
+  language_class: 1
+  language_function: 2
+checks:
+  exists: true
+  size_mismatch: false
+summary: >
+  Краткое описание содержимого файла.
+analysis:
+  checklist_results:
+    - id: component
+      found: true
+      count: 1
+      entities:
+        - name: NavigationEngineV7
+          summary: |
+            Пример описания сущности.
+          source:
+            lines: [10, 120]
+          metadata:
+            layer: Application
+deviations: []

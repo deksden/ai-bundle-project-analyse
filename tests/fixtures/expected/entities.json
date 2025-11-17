@@ -1,0 +1,62 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "entities": [
+    {
+      "id": "entity-api",
+      "name": "API Service",
+      "type": "service",
+      "fqn": null,
+      "path": "apps/api/src/index.ts",
+      "metadata": {
+        "endpoints": [
+          "GET /health"
+        ],
+        "analysis": {
+          "taskId": "<<TASK_ID>>",
+          "inbound": 1,
+          "outbound": 1,
+          "remarks": 1,
+          "hasRemarks": true,
+          "evidence": 1
+        }
+      }
+    },
+    {
+      "id": "entity-db",
+      "name": "Research DB",
+      "type": "database",
+      "fqn": null,
+      "path": null,
+      "metadata": {
+        "analysis": {
+          "taskId": "<<TASK_ID>>",
+          "inbound": 1,
+          "outbound": 0,
+          "remarks": 0,
+          "hasRemarks": false,
+          "evidence": 0
+        }
+      }
+    },
+    {
+      "id": "entity-worker",
+      "name": "Worker",
+      "type": "service",
+      "fqn": null,
+      "path": "apps/worker/src/index.ts",
+      "metadata": {
+        "queues": [
+          "jobs.queue"
+        ],
+        "analysis": {
+          "taskId": "<<TASK_ID>>",
+          "inbound": 0,
+          "outbound": 1,
+          "remarks": 0,
+          "hasRemarks": false,
+          "evidence": 0
+        }
+      }
+    }
+  ]
+}

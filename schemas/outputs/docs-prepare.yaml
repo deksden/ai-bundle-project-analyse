@@ -1,0 +1,27 @@
+# docs-prepare — output schema (пример)
+status: success
+lane_id: docs
+project_root: /abs/path/to/project
+source_list: /abs/path/to/doc-files.json
+metrics:
+  total_files: 3
+  expected_files: 3
+  language_breakdown:
+    en: 3
+  format_breakdown:
+    markdown: 2
+    asciidoc: 1
+artefacts:
+  fanout_items_path: /abs/path/to/fanout/docs-items.json
+fanout_items:
+  - index: 0
+    path: /abs/path/to/doc.md
+    relative_path: docs/ADR-001-current.md
+    display_path: docs/ADR-001-current.md
+    top_directory: docs
+    extension: .md
+    format: markdown
+    language: en
+    content_hash: d41d8cd98f00b204
+    hash_algorithm: xxhash64
+deviations: []

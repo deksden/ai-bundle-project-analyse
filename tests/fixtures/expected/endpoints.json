@@ -1,0 +1,18 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "endpoints": [
+    {
+      "relationshipId": "rel-api-db",
+      "endpoint": "postgresql://research-db",
+      "source": "API Service",
+      "target": "Research DB",
+      "type": "uses-database"
+    },
+    {
+      "entityId": "entity-api",
+      "entity": "API Service",
+      "endpoint": "GET /health",
+      "source": "API Service"
+    }
+  ]
+}

@@ -1,0 +1,265 @@
+{
+  "bundle_id": "research-structure",
+  "name": "Research Structure Bundle",
+  "version": "0.4.0",
+  "description": "Первый этап ADR-015: сбор структурного среза проекта через набор CLI-скриптов и workflow.",
+  "adr": "ARD-015-1",
+  "namespace": "research-structure",
+  "workspace_integration": {
+    "target": "task",
+    "strategy": "symlink",
+    "readOnly": true
+  },
+  "context": {
+    "expose": [
+      { "key": "scripts", "group": "scripts" },
+      { "key": "workflows", "group": "workflows" },
+      { "key": "fixtures", "group": "fixtures" },
+      { "key": "demo", "group": "demo-scripts" },
+      { "key": "demo.apps", "group": "demo-apps" },
+      { "key": "demo.docs", "group": "demo-docs" },
+      { "key": "config", "group": "config" },
+      { "key": "docs", "group": "docs" },
+      { "key": "schemas", "group": "schemas" }
+    ]
+  },
+  "defaults": {
+    "engine_profile": "analysis-default",
+    "params": {
+      "project_root": "{{ project_root }}",
+      "remarks": []
+    },
+    "outputs": {
+      "global": {
+        "structure_summary": "global/structure/snapshot.json"
+      }
+    },
+    "attach_groups": [
+      "scripts",
+      "workflows",
+      "fixtures",
+      "demo-scripts",
+      "demo-apps",
+      "demo-docs",
+      "config",
+      "docs",
+      "schemas",
+      "shared-resources"
+    ]
+  },
+  "content_groups": {
+    "shared-resources": {
+      "description": "Разделяемые ресурсы между прогонами (shared target)",
+      "target": "shared",
+      "files": [
+        { "src": "shared/analysis", "dst": "." }
+      ]
+    },
+    "scripts": {
+      "description": "CLI-скрипты пайплайна research-structure",
+      "files": [
+        { "src": "scripts/init-db.ts", "dst": "init-db.ts" },
+        { "src": "scripts/index-files.ts", "dst": "index-files.ts" },
+        { "src": "scripts/prepare-remarks.ts", "dst": "prepare-remarks.ts" },
+        { "src": "scripts/compact-db.ts", "dst": "compact-db.ts" },
+        { "src": "scripts/enrich-links.ts", "dst": "enrich-links.ts" },
+        { "src": "scripts/export-snapshot.ts", "dst": "export-snapshot.ts" },
+        { "src": "scripts/generate-structure-report.ts", "dst": "generate-structure-report.ts" },
+        { "src": "scripts/generate-file-lists.ts", "dst": "generate-file-lists.ts" },
+        { "src": "scripts/finalize-run.ts", "dst": "finalize-run.ts" },
+        { "src": "scripts/run-workflow.ts", "dst": "run-workflow.ts" },
+        { "src": "scripts/run-structure-cli.ts", "dst": "run-structure-cli.ts" },
+        { "src": "scripts/clean-structure-shared.ts", "dst": "clean-structure-shared.ts" },
+        { "src": "scripts/write-to-db.ts", "dst": "write-to-db.ts" },
+        { "src": "scripts/clear-and-write-to-db.ts", "dst": "clear-and-write-to-db.ts" },
+        { "src": "scripts/db-maintenance.ts", "dst": "db-maintenance.ts" },
+        { "src": "scripts/db-check.ts", "dst": "db-check.ts" },
+        { "src": "scripts/code/index.js", "dst": "code/index.js" },
+        { "src": "scripts/docs/index.js", "dst": "docs/index.js" },
+        { "src": "scripts/lanes/index.js", "dst": "lanes/index.js" },
+        { "src": "scripts/cli/index.js", "dst": "cli/index.js" },
+        { "src": "scripts/package.json", "dst": "package.json" },
+        { "src": "scripts/workflow/bootstrap.mjs", "dst": "workflow/bootstrap.mjs" },
+        { "src": "scripts/utils/logging.ts", "dst": "utils/logging.ts" },
+        { "src": "scripts/utils/sqlite.ts", "dst": "utils/sqlite.ts" },
+        { "src": "scripts/utils/tree-sitter.js", "dst": "utils/tree-sitter.js" },
+        { "src": "scripts/utils/jsdoc-parser.js", "dst": "utils/jsdoc-parser.js" },
+        { "src": "scripts/utils/hash.js", "dst": "utils/hash.js" },
+        { "src": "scripts/workflow/code/prepare.mjs", "dst": "workflow/code/prepare.mjs" },
+        { "src": "scripts/workflow/code/extract-symbols.mjs", "dst": "workflow/code/extract-symbols.mjs" },
+        { "src": "scripts/workflow/code/collect.mjs", "dst": "workflow/code/collect.mjs" },
+        { "src": "scripts/workflow/code/summary.mjs", "dst": "workflow/code/summary.mjs" },
+        { "src": "scripts/workflow/code/persist.mjs", "dst": "workflow/code/persist.mjs" },
+        { "src": "scripts/workflow/docs/prepare.mjs", "dst": "workflow/docs/prepare.mjs" },
+        { "src": "scripts/workflow/docs/process-file.mjs", "dst": "workflow/docs/process-file.mjs" },
+        { "src": "scripts/workflow/docs/summary.mjs", "dst": "workflow/docs/summary.mjs" },
+        { "src": "scripts/workflow/lanes/summary.mjs", "dst": "workflow/lanes/summary.mjs" },
+        { "src": "scripts/workflow/report/structure.mjs", "dst": "workflow/report/structure.mjs" },
+        { "src": "scripts/workflow/utils/yaml.mjs", "dst": "workflow/utils/yaml.mjs" }
+      ]
+    },
+    "workflows": {
+      "description": "Workflow и конфигурация analysis стадии",
+      "files": [
+        { "src": "analysis/config.json", "dst": "analysis/config.json" },
+        { "src": "workflows/research-structure.yaml", "dst": "research-structure.yaml" }
+      ]
+    },
+    "fixtures": {
+      "description": "Фикстуры для ingest и ожидаемых артефактов",
+      "files": [
+        { "src": "tests/fixtures/ingest.jsonl", "dst": "tests/fixtures/ingest.jsonl" },
+        { "src": "tests/fixtures/expected/entities.json", "dst": "tests/fixtures/expected/entities.json" },
+        { "src": "tests/fixtures/expected/relationships.json", "dst": "tests/fixtures/expected/relationships.json" },
+        { "src": "tests/fixtures/expected/metrics.json", "dst": "tests/fixtures/expected/metrics.json" },
+        { "src": "tests/fixtures/expected/external-systems.json", "dst": "tests/fixtures/expected/external-systems.json" },
+        { "src": "tests/fixtures/expected/endpoints.json", "dst": "tests/fixtures/expected/endpoints.json" },
+        { "src": "tests/fixtures/expected/queues.json", "dst": "tests/fixtures/expected/queues.json" },
+        { "src": "tests/fixtures/expected/coverage.json", "dst": "tests/fixtures/expected/coverage.json" }
+      ]
+    },
+    "demo-scripts": {
+      "description": "Демо-проект: сценарии и входные данные",
+      "files": [
+        { "src": "examples/research-structure-demo/README.md", "dst": "examples/research-structure-demo/README.md" },
+        { "src": "examples/research-structure-demo/ingest.jsonl", "dst": "examples/research-structure-demo/ingest.jsonl" },
+        { "src": "examples/research-structure-demo/remarks.json", "dst": "examples/research-structure-demo/remarks.json" },
+        { "src": "examples/research-structure-demo/workflows/monitor.yaml", "dst": "examples/research-structure-demo/workflows/monitor.yaml" },
+        { "src": "examples/research-structure-demo/analysis/.gitkeep", "dst": "examples/research-structure-demo/analysis/.gitkeep" }
+      ]
+    },
+    "demo-apps": {
+      "description": "Демо-проект: пример приложений и сервисов",
+      "files": [
+        { "src": "examples/research-structure-demo/apps/api/src/index.ts", "dst": "examples/research-structure-demo/apps/api/src/index.ts" },
+        { "src": "examples/research-structure-demo/apps/worker/src/index.ts", "dst": "examples/research-structure-demo/apps/worker/src/index.ts" },
+        { "src": "examples/research-structure-demo/apps/reporting/src/aggregator.ts", "dst": "examples/research-structure-demo/apps/reporting/src/aggregator.ts" },
+        { "src": "examples/research-structure-demo/services/cron/job.ts", "dst": "examples/research-structure-demo/services/cron/job.ts" },
+        { "src": "examples/research-structure-demo/infrastructure/terraform/main.tf", "dst": "examples/research-structure-demo/infrastructure/terraform/main.tf" }
+      ]
+    },
+    "demo-docs": {
+      "description": "Демо-проект: документация",
+      "files": [
+        { "src": "examples/research-structure-demo/docs/ADR-001-current.md", "dst": "examples/research-structure-demo/docs/ADR-001-current.md" },
+        { "src": "examples/research-structure-demo/docs/ADR-999-legacy.md", "dst": "examples/research-structure-demo/docs/ADR-999-legacy.md" }
+      ]
+    },
+    "config": {
+      "description": "Глобальные конфигурации и queue настройки",
+      "files": [
+        { "src": "examples/research-structure-demo/configs/queue.yaml", "dst": "examples/research-structure-demo/configs/queue.yaml" }
+      ]
+    },
+    "docs": {
+      "description": "Документация bundle",
+      "files": [
+        { "src": "README.md", "dst": "README.md" },
+        { "src": "docs/entities-checklist.md", "dst": "entities-checklist.md" }
+      ]
+    },
+    "schemas": {
+      "description": "Шаблоны schema.output для стадий workflow",
+      "files": [
+        { "src": "schemas/outputs/code-prepare.yaml", "dst": "schemas/outputs/code-prepare.yaml" },
+        { "src": "schemas/outputs/docs-prepare.yaml", "dst": "schemas/outputs/docs-prepare.yaml" },
+        { "src": "schemas/outputs/code-process-file.yaml", "dst": "schemas/outputs/code-process-file.yaml" },
+        { "src": "schemas/outputs/docs-process-file.yaml", "dst": "schemas/outputs/docs-process-file.yaml" },
+        { "src": "schemas/outputs/code-summary.yaml", "dst": "schemas/outputs/code-summary.yaml" },
+        { "src": "schemas/outputs/docs-summary.yaml", "dst": "schemas/outputs/docs-summary.yaml" },
+        { "src": "schemas/outputs/lanes-summary.yaml", "dst": "schemas/outputs/lanes-summary.yaml" }
+      ]
+    }
+  },
+  "scripts": [
+    {
+      "id": "init-db",
+      "path": "bundle/scripts/init-db.ts",
+      "description": "Подготовка SQLite (WAL) и создание схемы.",
+      "args": ["--project_root", "--db_path", "--run_id"]
+    },
+    {
+      "id": "index-files",
+      "path": "bundle/scripts/index-files.ts",
+      "description": "Индексирование файлов проекта и обновление file_index.",
+      "args": ["--project_root", "--db_path", "--run_id", "--git_sha"]
+    },
+    {
+      "id": "prepare-remarks",
+      "path": "bundle/scripts/prepare-remarks.ts",
+      "description": "Нормализация и запись ремарок v1.",
+      "args": ["--project_root", "--db_path", "--run_id", "--remarks_json"]
+    },
+    {
+      "id": "write-to-db",
+      "path": "bundle/scripts/write-to-db.ts",
+      "description": "Загрузка ingest JSONL и обновление сущностей.",
+      "args": ["--db_path", "--run_id", "--ingest_path"]
+    },
+    {
+      "id": "compact-db",
+      "path": "bundle/scripts/compact-db.ts",
+      "description": "Очистка и VACUUM после записи.",
+      "args": ["--db_path", "--run_id"]
+    },
+    {
+      "id": "enrich-links",
+      "path": "bundle/scripts/enrich-links.ts",
+      "description": "Обогащение связей и расчёт покрытий.",
+      "args": ["--db_path", "--run_id"]
+    },
+    {
+      "id": "export-snapshot",
+      "path": "bundle/scripts/export-snapshot.ts",
+      "description": "Экспорт JSON артефактов структуры.",
+      "args": ["--db_path", "--run_id", "--outputs_dir"]
+    },
+    {
+      "id": "generate-structure-report",
+      "path": "bundle/scripts/generate-structure-report.ts",
+      "description": "Генерация Markdown отчёта.",
+      "args": ["--db_path", "--run_id", "--outputs_dir"]
+    },
+    {
+      "id": "finalize-run",
+      "path": "bundle/scripts/finalize-run.ts",
+      "description": "Резюмирование результатов и обновление runs.",
+      "args": ["--db_path", "--run_id", "--outputs_dir"]
+    },
+    {
+      "id": "clean-structure-shared",
+      "path": "bundle/scripts/clean-structure-shared.ts",
+      "description": "Очистка shared ресурсов research-structure (task/global/shared)",
+      "args": ["--global-root"]
+    }
+  ],
+  "packages": [
+    {
+      "name": "research-scripts",
+      "version": "0.4.0",
+      "source": "bundle",
+      "path": "scripts",
+      "description": "Runtime scripts for the research-structure workflow",
+      "type": "node",
+      "entry_points": [
+        "workflow/bootstrap.mjs",
+        "workflow/code/prepare.mjs",
+        "workflow/code/extract-symbols.mjs",
+        "workflow/code/collect.mjs",
+        "workflow/code/summary.mjs",
+        "workflow/docs/prepare.mjs",
+        "workflow/docs/process-file.mjs",
+        "workflow/docs/summary.mjs",
+        "workflow/lanes/summary.mjs"
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "research-structure",
+      "path": "workflows/research-structure.yaml",
+      "description": "Оркестрация скриптов research-structure.",
+      "engine_profile": "analysis-default"
+    }
+  ]
+}

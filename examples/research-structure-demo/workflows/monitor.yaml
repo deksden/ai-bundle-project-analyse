@@ -1,0 +1,29 @@
+version: 1
+workflow:
+  id: monitor-demo
+  name: Monitor Demo Services
+  description: Simple workflow to poll API metrics and notify when thresholds are exceeded.
+  steps:
+    - id: fetch-metrics
+      type: prompt
+      name: Fetch API metrics
+      config:
+        prompt: |
+          Ты получаешь метрики API Gateway. Проверь uptime и активные очереди.
+    - id: decide
+      type: choice
+      name: Decide reaction
+      transitions:
+        - condition: "{{ steps.fetch-metrics.outputs.uptimeSeconds > 60 }}"
+          next: notify
+        - condition: default
+          next: wait
+    - id: wait
+      type: return
+      name: No action
+    - id: notify
+      type: prompt
+      name: Send notification
+      config:
+        prompt: |
+          API работает дольше минуты. Отправь уведомление в мониторинг.

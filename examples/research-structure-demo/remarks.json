@@ -1,0 +1,18 @@
+[
+  {
+    "path": "docs/ADR-999-legacy.md",
+    "scope": "file",
+    "text": "Legacy document detected — подтвердите, что описание ещё актуально."
+  },
+  {
+    "path": "apps/reporting",
+    "scope": "dir",
+    "recursive": true,
+    "text": "Добавьте документацию для reporting aggregator."
+  },
+  {
+    "path": "apps/**/*.ts",
+    "scope": "glob",
+    "text": "Проверьте владельцев для сервисов в папке apps."
+  }
+]

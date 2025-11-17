@@ -1,0 +1,39 @@
+{
+  "$schema": "./config.schema.json",
+  "db_path": "analysis/analysis.db",
+  "repo_root": "{{ project_root }}",
+  "git_sha": "{{ git_sha | default: null }}",
+  "code_lane": {
+    "languages": ["ts", "tsx", "js", "jsx", "go", "py"],
+    "max_parallel_files": 4,
+    "include_jsdoc": true
+  },
+  "docs_lane": {
+    "mode": "agent",
+    "max_sections_per_file": 8,
+    "include_mentions": true
+  },
+  "cli": {
+    "export": {
+      "include_reports": true,
+      "include_doc_matches": true,
+      "include_code_process": true
+    }
+  },
+  "ingest": {
+    "hash_algorithm": "sha256",
+    "cleanup_batch_size": 500,
+    "notes": "hash_algorithm используется для вычисления контрольных сумм файлов/символов, cleanup_batch_size ограничивает количество записей, удаляемых за один проход."
+  },
+  "options": {
+    "wal": true,
+    "busy_timeout_ms": 5000,
+    "synchronous": "NORMAL"
+  },
+  "notes": {
+    "wal": "Включает журналирование WAL для конкурентного чтения без блокировок.",
+    "busy_timeout": "SQLite будет ожидать до 5 секунд при блокировках перед ошибкой.",
+    "synchronous": "NORMAL снижает fsync задержки при сохранении артефактов ресерча.",
+    "ingest": "hash_algorithm и cleanup_batch_size управляют обработкой и очисткой таблиц write-to-db."
+  }
+}

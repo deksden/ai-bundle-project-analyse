@@ -1,0 +1,13 @@
+# code-summary — output schema (пример)
+status: success
+metrics:
+  expected_files: 4
+  processed_files: 4
+  successful_files: 4
+  unique_extensions: 2
+  files_failed_checks: 0
+  branch_errors: 0
+  missing_branch_indices: []
+artefacts:
+  summary_json: /abs/path/reports/code-summary.json
+deviations: []

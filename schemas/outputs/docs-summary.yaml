@@ -1,0 +1,22 @@
+# docs-summary — output schema (пример)
+status: success
+metrics:
+  expected_files: 3
+  processed_files: 3
+  coverage_ratio: 1
+  total_branches: 3
+  doc_entities: 9
+  doc_relationships: 4
+  files_missing_title: 0
+  branch_errors: 0
+  format_breakdown:
+    markdown: 2
+    asciidoc: 1
+  language_breakdown:
+    en: 2
+    ru: 1
+artefacts:
+  summary_json: /abs/path/reports/doc-summary.json
+  summary_report: /abs/path/reports/doc-summary.md
+  processed_records: /abs/path/tmp/docs-processed.json
+deviations: []

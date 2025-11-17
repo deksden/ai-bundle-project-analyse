@@ -1,0 +1,11 @@
+queues:
+  events:
+    name: events.high
+    priority: high
+    retention: 3d
+  audit:
+    name: audit.low
+    priority: low
+topics:
+  - name: external.research-db
+    description: Replica feed from analytics database

@@ -1,0 +1,18 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "coverage": {
+    "total": {
+      "files": 6,
+      "entities": 3,
+      "relationships": 2,
+      "remarks": 2,
+      "remarkApplications": 2,
+      "evidence": 2,
+      "layers": 1,
+      "slices": 1
+    },
+    "filesWithEntities": 2,
+    "filesWithRemarks": 2,
+    "updatedAt": "<<ISO>>"
+  }
+}

@@ -1,0 +1,55 @@
+# docs-process-file — docEntityRaw output (пример)
+status: success
+lane_id: docs
+file:
+  index: 0
+  path: /abs/path/docs/ADR-015.md
+  absolute_path: /abs/path/docs/ADR-015.md
+  relative_path: docs/ADR-015.md
+  display_path: docs/ADR-015.md
+  extension: .md
+  top_directory: docs
+  format: markdown
+  language: en
+  content_hash: 329fe1aa6c4f4e30
+  hash_algorithm: xxhash64
+doc_summary:
+  title: ADR-015 — Event Driven Architecture
+  summary: >
+    Документ описывает цели V7, основные принципы и сервисы.
+  topics: ["orchestrator", "event-bus"]
+doc_entities:
+  - doc_id: docs/ADR-015.md#v7-event-bus
+    heading: V7 Event Bus
+    anchor: v7-event-bus
+    block_start_line: 41
+    block_end_line: 88
+    summary: >
+      Раскрывает очередь событий, приоритеты и lease guard.
+    topics: ["queues", "redis"]
+    tags: ["critical"]
+    references:
+      - kind: spec
+        target: docs/orchestrator/event-bus/architecture.md
+        notes: "Диаграмма и LMOVE/BLMOVE"
+    evidence: "Раздел «V7 Event Bus»"
+    content_hash: 991c74b83a0e5ce2
+doc_relationships:
+  - relationship_id: docs/ADR-015.md#v7-event-bus:navigation
+    kind: references-code
+    source_doc_id: docs/ADR-015.md#v7-event-bus
+    target_symbol_id: NavigationEngineV7
+    target_path: apps/api/src/services/v7/navigation-engine.service.ts
+    description: "Раздел описывает как NavigationEngine читает очереди."
+    evidence: "«NavigationEngine» subsection"
+mentions:
+  - type: cli
+    value: pnpm analysis-cli doc insert --workspace "$STEP_ROOT" --input "$STEP_ROOT/docs-process.json"
+    description: "Выполни команду после заполнения docs-process.json, чтобы записать docEntityRaw в SQLite."
+metrics:
+  total_sections: 2
+  relationships_total: 1
+  mentions_total: 1
+  doc_language: en
+  doc_format: markdown
+deviations: []

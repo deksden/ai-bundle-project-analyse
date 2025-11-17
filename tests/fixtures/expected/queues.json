@@ -1,0 +1,16 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "queues": [
+    {
+      "relationshipId": "rel-worker-api",
+      "name": "jobs.queue",
+      "source": "Worker",
+      "target": "API Service"
+    },
+    {
+      "entityId": "entity-worker",
+      "entity": "Worker",
+      "queue": "jobs.queue"
+    }
+  ]
+}

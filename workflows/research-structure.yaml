@@ -1,0 +1,620 @@
+name: Research Structure Pipeline
+id: research-structure
+version: 2.0.0
+author: ai-kod
+description: >-
+  Подготавливает окружение research-structure bundle и формирует файловые артефакты
+  для последующих стадий (списки кода, документации и дерево директорий).
+tags:
+  - research
+  - structure
+  - analysis
+metadata:
+  description: Подготовительный этап research-structure bundle с формированием артефактов.
+schemas:
+  codeItem@1:
+    type: object
+    required: [path, relative_path, display_path, extension, size, index]
+    properties:
+      path:
+        type: string
+        description: Абсолютный путь файла кода.
+      relative_path:
+        type: string
+        description: Путь относительно корня проекта.
+      display_path:
+        type: string
+        description: Отображаемый путь файла.
+      extension:
+        type: string
+        description: Расширение файла.
+      size:
+        type: integer
+        minimum: 0
+      index:
+        type: integer
+        minimum: 0
+      recorded_size:
+        type: integer
+        description: Размер, зафиксированный ранее.
+      language:
+        type: string
+        description: Определённый язык файла кода.
+      content_hash:
+        type: string
+        description: Контрольная сумма содержимого.
+      hash_algorithm:
+        type: string
+        description: Алгоритм, использованный для content_hash.
+  docItem@1:
+    type: object
+    required: [path, relative_path, display_path, extension, top_directory, index]
+    properties:
+      path:
+        type: string
+      relative_path:
+        type: string
+      display_path:
+        type: string
+      extension:
+        type: string
+      top_directory:
+        type: string
+      index:
+        type: integer
+  processedDocumentList@1:
+    type: array
+    description: Список результатов обработки документов.
+    items:
+      type: object
+start: start
+inputs:
+  required:
+    - name: project_root
+      type: string
+      description: Абсолютный путь к анализируемому репозиторию (обязательный).
+  optional:
+    - name: git_sha
+      type: string
+      description: Git SHA, связанный с прогоном (опционально).
+      default: ""
+    - name: remarks
+      type: array
+      description: Список REMARK объектов (JSON объекты с `path`, `scope`, `recursive`, `text`).
+      default: []
+
+packages:
+  - name: research-scripts
+    version: "0.4.0"
+    source: bundle
+    path: scripts
+
+stages:
+  - id: start
+    name: Prepare research structure context
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/bootstrap.mjs
+      runtime: node20
+    context_from:
+      - bundle.scripts
+      - bundle.workflows
+      - bundle.fixtures
+      - bundle.demo-scripts
+      - bundle.demo-apps
+      - bundle.demo-docs
+      - bundle.config
+      - bundle.docs
+    workspace_contract:
+      files:
+        required:
+        - glob: code-files.json
+          expect:
+            count: 1
+          error: "code-files.json не создан"
+        - glob: doc-files.json
+          expect:
+            count: 1
+          error: "doc-files.json не создан"
+        - glob: folder-tree.json
+          expect:
+            count: 1
+          error: "folder-tree.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+        - glob: global/logs/init-db.log
+          expect:
+            count: 1
+          error: "init-db.log не создан — init-db не запускался"
+    navigation:
+      strategy: linear
+      next: lanes-parallel-start
+  - id: lanes-parallel-start
+    kind: parallel
+    mode: start
+    block: lanes-processing
+    context_from:
+      - start
+    lanes:
+      - id: code
+        start: code-prepare
+        endAt: code-summary
+      - id: docs
+        start: docs-prepare
+        endAt: docs-summary
+    navigation:
+      strategy: linear
+      next: lanes-parallel-end
+  - id: code-prepare
+    name: Prepare code fan-out dataset
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/code/prepare.mjs
+      runtime: node20
+    context_from:
+      - start
+    workspace_contract:
+      files:
+        required:
+        - glob: fanout/code-items.json
+          expect:
+            count: 1
+          error: "fanout/code-items.json не создан"
+        - glob: code-prepare.json
+          expect:
+            count: 1
+          error: "code-prepare.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: linear
+      next: code-dispatch
+  - id: code-dispatch
+    context_from:
+      - code-prepare
+    navigation:
+      strategy: fanout
+      branches:
+        foreach: fanout_items
+        as: code_item
+        next: code-process-file
+  - id: code-process-file
+    name: Extract code symbols
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/code/extract-symbols.mjs
+      runtime: node20
+    contracts:
+      input:
+        type: object
+        required: [code_item]
+        properties:
+          code_item:
+            $ref: "#/schemas/codeItem@1"
+    context_from:
+      - start
+      - code-prepare
+    workspace_contract:
+      files:
+        required:
+        - glob: code-process.json
+          expect:
+            count: 1
+          error: "code-process.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml не создан"
+    workspace:
+      references:
+        override:
+          PROJECT_ROOT:
+            from: "project_root"
+            label: "PROJECT_ROOT (из inputs.project_root)"
+    navigation:
+      strategy: linear
+      next: code-collect
+  - id: code-collect
+    name: Collect code lane results
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/code/collect.mjs
+      runtime: node20
+    context_from:
+      - code-process-file
+      - code-prepare
+      - start
+    contracts:
+      input:
+        type: object
+        required: [code_processed]
+        properties:
+          code_processed:
+            $ref: "#/schemas/processedDocumentList@1"
+    workspace_contract:
+      files:
+        required:
+        - glob: global/analysis/code-process.json
+          expect:
+            count: 1
+          error: "analysis/code-process.json не создан"
+        - glob: global/analysis/code-ingest.jsonl
+          expect:
+            count: 1
+          error: "analysis/code-ingest.jsonl не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: fanin
+      next: code-summary
+      merge:
+        into: code_processed
+        includeMetadata: true
+        includeErrors: true
+  - id: code-summary
+    name: Build code lane summary
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/code/summary.mjs
+      runtime: node20
+    context_from:
+      - code-collect
+      - code-prepare
+      - start
+    contracts:
+      input:
+        type: object
+        required: [code_processed]
+        properties:
+          code_processed:
+            $ref: "#/schemas/processedDocumentList@1"
+    workspace_contract:
+      files:
+        required:
+        - glob: reports/code-summary.json
+          expect:
+            count: 1
+          error: "reports/code-summary.json не создан"
+        - glob: reports/code-summary.md
+          expect:
+            count: 1
+          error: "reports/code-summary.md не создан"
+        - glob: tmp/code-summary-output.json
+          expect:
+            count: 1
+          error: "tmp/code-summary-output.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: linear
+  - id: docs-prepare
+    name: Prepare docs fan-out dataset
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/docs/prepare.mjs
+      runtime: node20
+    context_from:
+      - start
+    workspace_contract:
+      files:
+        required:
+        - glob: fanout/docs-items.json
+          expect:
+            count: 1
+          error: "fanout/docs-items.json не создан"
+        - glob: docs-prepare.json
+          expect:
+            count: 1
+          error: "docs-prepare.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: linear
+      next: docs-dispatch
+  - id: docs-dispatch
+    context_from:
+      - docs-prepare
+    navigation:
+      strategy: fanout
+      branches:
+        foreach: fanout_items
+        as: doc_item
+        next: docs-process-file
+  - id: docs-process-file
+    name: Process documentation file
+    prompt_type: inline
+    contracts:
+      input:
+        type: object
+        required: [doc_item]
+        properties:
+          doc_item:
+            $ref: "#/schemas/docItem@1"
+    context_from:
+      - start
+      - docs-prepare
+    prompt:
+      task: |-
+        Ты отвечаешь за извлечение сущностей документации (docEntityRaw) из файла `{{inputs.doc_item.display_path}}`.
+
+        **План работы:**
+        1. Прочитай документ, разбей его максимум на 8 логических секций.
+        2. Для каждой секции определи заголовок, диапазон строк, ключевые темы, ссылки на связанные сущности.
+        3. Заполни `docs-process.json` согласно структуре:
+           ```json
+           {
+             "doc": {
+               "title": "ADR-015",
+               "summary": "Переход на event-driven архитектуру",
+               "topics": ["orchestrator", "event-bus"]
+             },
+             "doc_entities": [
+               {
+                 "heading": "V7 Event Bus",
+                 "summary": "Схема очередей и lease guard",
+                 "anchor": "v7-event-bus",
+                 "block_start_line": 42,
+                 "block_end_line": 78,
+                 "topics": ["queues", "redis"],
+                 "tags": ["critical"],
+                 "references": [
+                   {"kind": "spec", "target": "docs/orchestrator/event-bus/architecture.md", "notes": "подробная диаграмма"}
+                 ]
+               }
+             ],
+             "doc_relationships": [
+               {
+                 "kind": "references-code",
+                 "source_doc_id": "docs/ADR-015.md#v7-event-bus",
+                 "target_symbol_id": "NavigationEngineV7",
+                 "target_path": "apps/api/src/services/v7/navigation-engine.service.ts",
+                 "description": "Документ описывает как NavigationEngine читает очереди",
+                 "evidence": "см. раздел \"Navigation\""
+               }
+             ],
+             "mentions": [
+               {
+                 "type": "cli",
+                 "value": "pnpm analysis-cli doc insert --workspace \"$STEP_ROOT\" --input \"$STEP_ROOT/docs-process.json\"",
+                 "description": "Команда, которой ты записываешь docEntityRaw в SQLite"
+               }
+             ]
+           }
+           ```
+        4. Требования к docEntityRaw:
+           - `doc_id = <relative_path>#<slug>` (slug = anchor заголовка).
+           - `heading`, `summary`, `block_start_line`, `block_end_line` обязательны.
+           - `topics/tags` помогают фильтровать; `references[]` описывают внешние артефакты/CLI.
+        5. После заполнения JSON выполни валидацию и генерацию `output.yaml`:
+           ```bash
+           set -euo pipefail
+           STEP_ROOT="$(pwd)"
+           BUNDLE_ROOT="$STEP_ROOT/global/bundle/research-structure"
+           node "$BUNDLE_ROOT/scripts/workflow/docs/process-file.mjs"
+           ```
+        6. После успешной генерации артефактов сохрани docEntityRaw в SQLite:
+           ```bash
+           STEP_ROOT="$(pwd)"
+           pnpm analysis-cli doc insert --workspace "$STEP_ROOT" --input "$STEP_ROOT/docs-process.json"
+           ```
+           Команда должна завершиться JSON-ответом `{"action":"doc_insert",...}` — приложи stdout к отчёту.
+        7. Убедись, что `docs-process.json` и `output.yaml` синхронизированы, а `mentions` содержат CLI-команду вставки (`analysis-cli doc insert`) с актуальными путями рабочего шага.
+    workspace_contract:
+      files:
+        required:
+        - glob: docs-process.json
+          expect:
+            count: 1
+          error: "docs-process.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml не создан"
+    navigation:
+      strategy: linear
+  - id: docs-collect
+    name: Collect docs lane results
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/docs/collect.mjs
+      runtime: node20
+    context_from:
+      - docs-process-file
+      - docs-prepare
+      - start
+    contracts:
+      input:
+        type: object
+        required: [docs_processed]
+        properties:
+          docs_processed:
+            $ref: "#/schemas/processedDocumentList@1"
+    workspace_contract:
+      files:
+        required:
+        - glob: global/analysis/docs-process.json
+          expect:
+            count: 1
+          error: "analysis/docs-process.json не создан"
+        - glob: global/analysis/docs-ingest.jsonl
+          expect:
+            count: 1
+          error: "analysis/docs-ingest.jsonl не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: fanin
+      next: docs-summary
+      merge:
+        into: docs_processed
+        includeMetadata: true
+        includeErrors: true
+  - id: docs-summary
+    name: Build documentation lane summary
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/docs/summary.mjs
+      runtime: node20
+    context_from:
+      - docs-collect
+      - docs-prepare
+      - start
+    contracts:
+      input:
+        type: object
+        required: [docs_processed]
+        properties:
+          docs_processed:
+            $ref: "#/schemas/processedDocumentList@1"
+    workspace_contract:
+      files:
+        required:
+        - glob: reports/doc-summary.json
+          expect:
+            count: 1
+          error: "reports/doc-summary.json не создан"
+        - glob: reports/doc-summary.md
+          expect:
+            count: 1
+          error: "reports/doc-summary.md не создан"
+        - glob: tmp/doc-summary-output.json
+          expect:
+            count: 1
+          error: "tmp/doc-summary-output.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: linear
+
+  - id: lanes-parallel-end
+    kind: parallel
+    mode: end
+    block: lanes-processing
+    join:
+      strategy: wait_all
+      merge:
+        into: parallel_results
+        includeErrors: true
+        includeMetadata: true
+        keyBy: lane_id
+    context_from:
+      - start
+    navigation:
+      strategy: linear
+      next: lanes-summary
+
+  - id: code-persist
+    name: Persist code lane results
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/code/persist.mjs
+      runtime: node20
+    context_from:
+      - lanes-summary
+      - start
+    workspace_contract:
+      files:
+        required:
+        - glob: global/analysis/code-ingest.jsonl
+          expect:
+            count: 1
+          error: "analysis/code-ingest.jsonl не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: linear
+      next: final-report
+  - id: lanes-summary
+    name: Consolidate lane metrics
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/lanes/summary.mjs
+      runtime: node20
+    context_from:
+      - lanes-parallel-end
+      - start
+    workspace_contract:
+      files:
+        required:
+        - glob: reports/combined-summary.json
+          expect:
+            count: 1
+          error: "reports/combined-summary.json не создан"
+        - glob: reports/doc-matches.json
+          expect:
+            count: 1
+          error: "reports/doc-matches.json не создан"
+        - glob: reports/doc-matches.md
+          expect:
+            count: 1
+          error: "reports/doc-matches.md не создан"
+        - glob: tmp/lanes-summary-output.json
+          expect:
+            count: 1
+          error: "tmp/lanes-summary-output.json не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"
+    navigation:
+      strategy: linear
+      next: code-persist
+
+  - id: final-report
+    name: Generate structure report
+    execution:
+      kind: script
+    script:
+      package: research-scripts
+      entry: workflow/report/structure.mjs
+      runtime: node20
+    context_from:
+      - lanes-summary
+      - start
+    workspace_contract:
+      files:
+        required:
+        - glob: global/reports/structure.md
+          expect:
+            count: 1
+          error: "structure.md не создан"
+        - glob: output.yaml
+          expect:
+            count: 1
+          error: "output.yaml отсутствует"

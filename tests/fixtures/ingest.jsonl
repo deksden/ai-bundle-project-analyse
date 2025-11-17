@@ -1,0 +1,11 @@
+{"type":"entity","id":"entity-api","name":"API Service","entityType":"service","path":"apps/api/src/index.ts","metadata":{"endpoints":["GET /health"]}}
+{"type":"entity","id":"entity-worker","name":"Worker","entityType":"service","path":"apps/worker/src/index.ts","metadata":{"queues":["jobs.queue"]}}
+{"type":"entity","id":"entity-db","name":"Research DB","entityType":"database"}
+{"type":"relationship","id":"rel-api-db","relType":"uses-database","sourceId":"entity-api","targetId":"entity-db","metadata":{"category":"external_system","endpoint":"postgresql://research-db"}}
+{"type":"relationship","id":"rel-worker-api","relType":"calls","sourceId":"entity-worker","targetId":"entity-api","metadata":{"queue":"jobs.queue"}}
+{"type":"evidence","entityId":"entity-api","payload":{"note":"Service definition located"}}
+{"type":"evidence","relationshipId":"rel-api-db","payload":{"note":"Connection string located in config"}}
+{"type":"layer","id":"layer-core","name":"Core Services"}
+{"type":"slice","id":"slice-analysis","name":"Analysis Flow"}
+{"type":"raw_code_entity","file_path":"apps/api/src/telemetry.ts","symbol_id":"registerNavigationBridge","kind":"function","name":"registerNavigationBridge","line_start":5,"line_end":32,"metadata":{"export_status":"exported","language":"ts"}}
+{"type":"raw_code_entity","file_path":"apps/api/src/telemetry.ts","symbol_id":"syncTelemetrySnapshot","kind":"function","name":"syncTelemetrySnapshot","line_start":33,"line_end":60,"metadata":{"export_status":"exported","language":"ts"}}

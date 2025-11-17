@@ -1,0 +1,15 @@
+{
+  "taskId": "<<TASK_ID>>",
+  "externalSystems": [
+    {
+      "relationshipId": "rel-api-db",
+      "source": "API Service",
+      "target": "Research DB",
+      "type": "uses-database",
+      "metadata": {
+        "category": "external_system",
+        "endpoint": "postgresql://research-db"
+      }
+    }
+  ]
+}
