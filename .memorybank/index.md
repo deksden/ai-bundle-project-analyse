@@ -48,5 +48,5 @@ history:
 - **Workflows:** `.memorybank/docs/workflows/index.md` — как устроены `research-structure` и `research-analyse`, входы/выходы, структура стадий.
 - **Bundle:** `.memorybank/docs/bundle/index.md` — состав бандла, что куда “экспортится”, как интерпретировать manifest.
 - **ADR источники:** `.memorybank/docs/adr/index.md` — первичные документы ADR‑015 / ARD‑015‑1 и “карта реализации” в этом репозитории.
+- **Skills:** `.memorybank/skills/ai-kod-wf-project-analyse/SKILL.md` — инструкция для AI‑агента как запускать и проверять этот bundle/workflow.
 - **Шаблоны MBB:** `.memorybank/templates/index.md` — шаблоны документов (скопированы из основного репо AI‑KOD).
-
