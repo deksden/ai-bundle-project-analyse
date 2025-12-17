@@ -18,7 +18,7 @@
 - `.kod/manifest.json` — manifest бандла (content groups + defaults.attach_groups).
 - `workflows/research-structure.yaml` — Stage 1 workflow (DSL v2).
 - `workflows/research-analyse.yaml` — Stage 2+ workflow (skeleton, вызывает `research-structure`).
-- `packages/research-scripts/` — script package `research-scripts@0.4.0` (entrypoints `workflow/*.mjs`).
+- `packages/research-scripts/` — script package `research-scripts@0.4.1` (entrypoints `workflow/*.mjs`).
 - `scripts/` — TS/JS‑скрипты пайплайна (запускаются из `bootstrap.mjs` через `pnpm exec tsx …`).
 - `analysis/config.json` — шаблон runtime‑конфига для SQLite/WAL (в рантайме материализуется в task workspace).
 - `examples/research-structure-demo/` — демо‑проект для прогона.

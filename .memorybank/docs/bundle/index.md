@@ -35,5 +35,5 @@ Bundle — это репозиторий‑контейнер, который AI
 ## Быстрые ссылки
 
 - `.memorybank/docs/bundle/manifest.md` — как читать `.kod/manifest.json`.
+- `.memorybank/docs/bundle/scripts-inventory.md` — инвентаризация `scripts/` vs `packages/research-scripts/`.
 - `docs/development.md` — практическая инструкция по dev/prod-test режимам и запуску.
-

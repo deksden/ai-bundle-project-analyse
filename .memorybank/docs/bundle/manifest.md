@@ -45,7 +45,7 @@ history:
 
 В этом репозитории ключевые группы:
 - `workflows` — YAML воркфлоу и конфиг анализатора.
-- `scripts` — TS/JS скрипты пайплайна.
+- `scripts` — TS скрипты пайплайна, которые вызываются из script package через `pnpm exec tsx …`.
 - `shared-resources` — папки под shared storage между прогонами.
 - `schemas`, `docs`, `fixtures`, `demo-*` — репродуцируемость и тесты.
 
@@ -62,3 +62,7 @@ history:
 
 Это защищает от конфликтов имён между разными бандлами.
 
+## Script packages
+
+Воркфлоу использует script package `research-scripts` (см. `workflows/research-structure.yaml` → `packages:`).
+Код пакета лежит в `packages/research-scripts/` и должен быть self-contained (см. `.memorybank/docs/bundle/scripts-inventory.md`).

@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.4.1",
   "bundle_id": "project-analyse",
   "namespace": "project-analyse",
   "default_workflow": {
@@ -30,26 +30,6 @@
           "dst": "init-db.ts"
         },
         {
-          "src": "scripts/index-files.ts",
-          "dst": "index-files.ts"
-        },
-        {
-          "src": "scripts/prepare-remarks.ts",
-          "dst": "prepare-remarks.ts"
-        },
-        {
-          "src": "scripts/compact-db.ts",
-          "dst": "compact-db.ts"
-        },
-        {
-          "src": "scripts/enrich-links.ts",
-          "dst": "enrich-links.ts"
-        },
-        {
-          "src": "scripts/export-snapshot.ts",
-          "dst": "export-snapshot.ts"
-        },
-        {
           "src": "scripts/generate-structure-report.ts",
           "dst": "generate-structure-report.ts"
         },
@@ -58,76 +38,28 @@
           "dst": "generate-file-lists.ts"
         },
         {
-          "src": "scripts/finalize-run.ts",
-          "dst": "finalize-run.ts"
-        },
-        {
-          "src": "scripts/run-workflow.ts",
-          "dst": "run-workflow.ts"
-        },
-        {
-          "src": "scripts/run-structure-cli.ts",
-          "dst": "run-structure-cli.ts"
-        },
-        {
           "src": "scripts/clean-structure-shared.ts",
           "dst": "clean-structure-shared.ts"
+        },
+        {
+          "src": "scripts/clean-structure-workflow.ts",
+          "dst": "clean-structure-workflow.ts"
         },
         {
           "src": "scripts/write-to-db.ts",
           "dst": "write-to-db.ts"
         },
         {
-          "src": "scripts/clear-and-write-to-db.ts",
-          "dst": "clear-and-write-to-db.ts"
-        },
-        {
-          "src": "scripts/db-maintenance.ts",
-          "dst": "db-maintenance.ts"
-        },
-        {
-          "src": "scripts/db-check.ts",
-          "dst": "db-check.ts"
-        },
-        {
-          "src": "scripts/code/index.js",
-          "dst": "code/index.js"
-        },
-        {
-          "src": "scripts/docs/index.js",
-          "dst": "docs/index.js"
-        },
-        {
-          "src": "scripts/lanes/index.js",
-          "dst": "lanes/index.js"
-        },
-        {
-          "src": "scripts/cli/index.js",
-          "dst": "cli/index.js"
-        },
-        {
-          "src": "scripts/package.json",
-          "dst": "package.json"
-        },
-        {
           "src": "scripts/utils/logging.ts",
           "dst": "utils/logging.ts"
         },
         {
+          "src": "scripts/utils/module.ts",
+          "dst": "utils/module.ts"
+        },
+        {
           "src": "scripts/utils/sqlite.ts",
           "dst": "utils/sqlite.ts"
-        },
-        {
-          "src": "scripts/utils/tree-sitter.js",
-          "dst": "utils/tree-sitter.js"
-        },
-        {
-          "src": "scripts/utils/jsdoc-parser.js",
-          "dst": "utils/jsdoc-parser.js"
-        },
-        {
-          "src": "scripts/utils/hash.js",
-          "dst": "utils/hash.js"
         }
       ]
     },
