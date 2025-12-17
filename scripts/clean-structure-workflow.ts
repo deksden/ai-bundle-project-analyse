@@ -7,7 +7,7 @@
  * - Стирает `examples/research-structure-demo/remarks.txt`, появляющийся после запуска.
  *
  * Запуск:
- *    pnpm tsx bundle/scripts/clean-structure-workflow.ts
+ *    pnpm tsx scripts/clean-structure-workflow.ts
  */
 
 import fs from "node:fs/promises";

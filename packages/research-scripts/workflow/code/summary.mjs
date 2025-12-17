@@ -208,6 +208,14 @@ function collectLaneRecords({ primaryEntries, fallbackEntries, laneId }) {
 }
 
 function resolveWorkspaceRoot(startDir) {
+	const explicit = process.env.AI_KOD_PROJECT_ROOT;
+	if (typeof explicit === "string" && explicit.length > 0) {
+		const resolved = path.isAbsolute(explicit) ? explicit : path.resolve(explicit);
+		if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+			return resolved;
+		}
+	}
+
 	let current = startDir;
 	while (true) {
 		const candidate = path.join(current, "pnpm-workspace.yaml");

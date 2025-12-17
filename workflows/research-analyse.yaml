@@ -1,0 +1,67 @@
+name: Research Analyse
+id: research-analyse
+version: 2.0.0
+author: ai-kod
+description: ADR-015 (Stage 2+): high-level project analysis orchestrator (initial skeleton).
+tags:
+  - research
+  - analyse
+  - adr-015
+metadata:
+  description: Aggregates structural artefacts and prepares follow-up analysis stages.
+start: structure
+inputs:
+  required:
+    - name: project_root
+      type: string
+      description: Абсолютный путь к анализируемому репозиторию (обязательный).
+  optional:
+    - name: git_sha
+      type: string
+      description: Git SHA, связанный с прогоном (опционально).
+      default: ""
+    - name: remarks
+      type: array
+      description: Список REMARK объектов (JSON объекты с `path`, `scope`, `recursive`, `text`).
+      default: []
+stages:
+  - id: structure
+    name: Run research-structure
+    max_iterations: 1
+    execution:
+      kind: wcall
+      workflowId: "(project-analyse)/research-structure"
+    inputs:
+      project_root: "{{inputs.project_root}}"
+      git_sha: "{{inputs.git_sha}}"
+      remarks: "{{inputs.remarks}}"
+    navigation:
+      strategy: linear
+      next: analyse
+    next_stages:
+      - analyse
+  - id: analyse
+    name: Analyse (placeholder)
+    prompt_type: inline
+    timeout: 150000
+    context_from:
+      - structure
+      - bundle.project-analyse.docs
+    prompt:
+      task: |
+        # Research Analyse (Skeleton)
+
+        Ты работаешь в рамках ADR‑015 (Stage 2+).
+
+        1) Посмотри результаты шага `structure` (outputs, метаданные, файлы).
+        2) Прочитай bundle docs (`bundle.project-analyse.docs`) если доступно.
+        3) Сформируй минимальный итоговый `output.yaml` (стаб), который будет расширяться при развитии workflow.
+
+        Создай `output.yaml`:
+        ```yaml
+        status: success
+        outputs:
+          summary: "research-analyse: placeholder stage completed"
+        ```
+    navigation:
+      strategy: complete

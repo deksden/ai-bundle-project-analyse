@@ -47,6 +47,13 @@ function toJsonLines(records) {
 }
 
 function writeToDatabase(bundleRoot, dbPath, taskId, ingestPath, logPath) {
+	const projectRootEnv = process.env.AI_KOD_PROJECT_ROOT;
+	const cwd =
+		typeof projectRootEnv === "string" && projectRootEnv.length > 0
+			? path.isAbsolute(projectRootEnv)
+				? projectRootEnv
+				: path.resolve(projectRootEnv)
+			: bundleRoot;
 	const result = spawnSync(
 		"pnpm",
 		[
@@ -66,7 +73,7 @@ function writeToDatabase(bundleRoot, dbPath, taskId, ingestPath, logPath) {
 		],
 		{
 			stdio: "inherit",
-			cwd: bundleRoot,
+			cwd,
 		},
 	);
 	if (result.status !== 0) {

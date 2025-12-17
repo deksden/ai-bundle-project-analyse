@@ -5,6 +5,14 @@ import { loadStageContext, getInputValue } from "./utils/context.mjs";
 import { writeYAML } from "./utils/yaml.mjs";
 
 function resolveWorkspaceRoot(startDir) {
+	const explicit = process.env.AI_KOD_PROJECT_ROOT;
+	if (typeof explicit === "string" && explicit.length > 0) {
+		const candidate = path.isAbsolute(explicit) ? explicit : path.resolve(explicit);
+		if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+			return candidate;
+		}
+	}
+
 	let current = startDir;
 	while (true) {
 		const workspaceFile = path.join(current, "pnpm-workspace.yaml");

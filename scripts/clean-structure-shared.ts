@@ -6,7 +6,7 @@
  * сохраняя сам каталог. Полезно для ручного сброса shared-базы между экспериментами.
  *
  * Запуск:
- *   pnpm tsx bundle/scripts/clean-structure-shared.ts --global-root "<путь к TASK-XXX/global>"
+ *   pnpm tsx scripts/clean-structure-shared.ts --global-root "<путь к TASK-XXX/global>"
  */
 
 import fs from "node:fs/promises";
